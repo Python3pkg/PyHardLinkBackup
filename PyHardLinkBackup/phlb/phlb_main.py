@@ -13,6 +13,7 @@ import logging
 import sys
 
 import hashlib
+import mmap
 import os
 
 # time.clock() on windows and time.time() on linux
@@ -176,65 +177,87 @@ class FileBackup(object):
         else:
             assert not os.path.isfile(self.path.abs_dst_filepath), self.path.abs_dst_filepath
 
+        file_stat=self.file_entry.stat()
+        file_size=file_stat.st_size
+
         try:
-            with open(self.path.abs_src_filepath, "rb") as in_file:
-                with open(self.path.abs_dst_hash_filepath, "w") as hash_file:
-                    with open(self.path.abs_dst_filepath, "wb") as out_file:
-                        hash = self._deduplication_backup(self.file_entry, in_file, out_file, process_bar)
-                    hash_hexdigest = hash.hexdigest()
-                    hash_file.write(hash_hexdigest)
+            abs_old_backup_path = None
+
+            with open(self.path.abs_dst_filepath, "wb") as out_file:
+                out_file.write(b'0') # work-a-round for windows
+                out_file.flush()
+                out_file_mm = mmap.mmap(
+                    out_file.fileno(),
+                    length=0,
+                    access=mmap.ACCESS_WRITE,
+                )
+                out_file_mm.flush()
+                out_file_mm.seek(0)
+                with open(self.path.abs_src_filepath, "rb") as in_file:
+                    with open(self.path.abs_dst_hash_filepath, "w") as hash_file:
+                        hash = self._deduplication_backup(self.file_entry, in_file, out_file_mm, process_bar)
+                        hash_hexdigest = hash.hexdigest()
+                        hash_file.write(hash_hexdigest)
+
+                # search of a old version of this file content via hash compare:
+                old_backups = BackupEntry.objects.filter(
+                    content_info__hash_hexdigest=hash_hexdigest
+                )
+                for old_backup in old_backups:
+                    log.debug("+++ old: %r", old_backup)
+                    log.debug("+++ rel: %r", old_backup.get_backup_path())
+
+                    abs_old_backup_path = old_backup.get_backup_path()
+                    log.debug("+++ abs: %r", abs_old_backup_path)
+                    if not os.path.isfile(abs_old_backup_path):
+                        log.error("*** ERROR old file doesn't exist! %r", abs_old_backup_path)
+                        # TODO: delete database entry
+                        continue
+
+                    # Old file with same hash exist
+                    # TODO: compare hash and current file content
+
+                    # truncate the written out file -> Will be replace with os.link()
+                    out_file_mm.seek(0)
+                    out_file_mm.resize(0)
+                    break
+
+                if abs_old_backup_path is None:
+                    log.debug("+++ no old entry in database!")
+                    # TODO: flush in chunks to update process bar
+                    out_file_mm.flush()
+
+            if abs_old_backup_path is not None:
+                # Old file with same hash exist -> replace out file with os.link()
+                os.remove(self.path.abs_dst_filepath)
+
+                os.link(abs_old_backup_path, self.path.abs_dst_filepath)
+                log.info("Replaced with a hardlink to: %r" % abs_old_backup_path)
+                new_bytes = 0
+                stined_bytes = file_size
+            else:
+                new_bytes = file_size
+                stined_bytes = 0
+
+            BackupEntry.objects.create(
+                self.path.backup_run,
+                directory=self.path.sub_path,
+                filename=self.path.filename,
+                hash_hexdigest=hash_hexdigest,
+                file_stat=file_stat,
+            )
+
+            # set origin access/modified times to the new created backup file
+            atime_ns = file_stat.st_atime_ns
+            mtime_ns = file_stat.st_mtime_ns
+            os.utime(self.path.abs_dst_filepath, ns=(atime_ns, mtime_ns))
+
+            return new_bytes, stined_bytes
+
         except KeyboardInterrupt:
             os.remove(self.path.abs_dst_filepath)
             os.remove(self.path.abs_dst_hash_filepath)
             sys.exit(-1)
-
-        file_stat=self.file_entry.stat()
-        file_size=file_stat.st_size
-
-        old_backups = BackupEntry.objects.filter(
-            content_info__hash_hexdigest=hash_hexdigest
-        )
-        no_old_backup = True
-        for old_backup in old_backups:
-            no_old_backup = False
-            log.debug("+++ old: %r", old_backup)
-            log.debug("+++ rel: %r", old_backup.get_backup_path())
-
-            abs_old_backup_path = old_backup.get_backup_path()
-            log.debug("+++ abs: %r", abs_old_backup_path)
-            if not os.path.isfile(abs_old_backup_path):
-                log.error("*** ERROR old file doesn't exist! %r", abs_old_backup_path)
-                continue
-
-            # TODO:
-            # compare hash
-            # compare current content
-            os.remove(self.path.abs_dst_filepath)
-            os.link(abs_old_backup_path, self.path.abs_dst_filepath)
-            log.info("Replaced with a hardlink to: %r" % abs_old_backup_path)
-            new_bytes = 0
-            stined_bytes = file_size
-            break
-
-        if no_old_backup:
-            log.debug("+++ no old entry in database!")
-            new_bytes = file_size
-            stined_bytes = 0
-
-        BackupEntry.objects.create(
-            self.path.backup_run,
-            directory=self.path.sub_path,
-            filename=self.path.filename,
-            hash_hexdigest=hash_hexdigest,
-            file_stat=file_stat,
-        )
-
-        # set origin access/modified times to the new created backup file
-        atime_ns = file_stat.st_atime_ns
-        mtime_ns = file_stat.st_mtime_ns
-        os.utime(self.path.abs_dst_filepath, ns=(atime_ns, mtime_ns))
-
-        return new_bytes, stined_bytes
 
 
 class HardLinkBackup(object):
