@@ -260,10 +260,6 @@ class SkipPatternInformation:
 
 class HardLinkBackup(object):
     def __init__(self, path_helper, summary):
-        """
-        :param src_path: Path2() instance of the source directory
-        :param force_name: Force this name for the backup
-        """
         self.start_time = default_timer()
 
         self.path_helper = path_helper
@@ -277,10 +273,10 @@ class HardLinkBackup(object):
         self.total_errored_items = 0
         self.total_fast_backup = 0
 
-        old_backups = BackupRun.objects.filter(name=self.path_helper.backup_name)
+        old_backups = BackupRun.objects.filter(name__name=self.path_helper.backup_name)
         self.summary("%r was backuped %i time(s)" % (self.path_helper.backup_name, old_backups.count()))
 
-        old_backups = old_backups.filter(completed=True)
+        old_backups = old_backups.exclude(end_datetime=None)
         completed_count = old_backups.count()
         self.summary("There are %i backups finished completed." % completed_count)
 
@@ -315,8 +311,8 @@ class HardLinkBackup(object):
 
         self.backup_run = BackupRun.objects.create(
             name = self.path_helper.backup_name,
+            source_path = self.path_helper.abs_src_root,
             backup_datetime=self.path_helper.backup_datetime,
-            completed = False,
         )
         log.debug(" * backup_run: %s" % self.backup_run)
 
@@ -344,7 +340,7 @@ class HardLinkBackup(object):
                 ))
                 temp_log_path.copyfile(self.path_helper.log_filepath) # call shutil.copyfile()
 
-        self.backup_run.completed=True
+        self.backup_run.finished()
         self.backup_run.save()
 
     def _evaluate_skip_pattern_info(self, skip_pattern_info, name):

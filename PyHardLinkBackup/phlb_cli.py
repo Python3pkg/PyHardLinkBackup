@@ -21,6 +21,7 @@ except ImportError:
         raise ImportError("For Python <2.5: Please install 'scandir' !")
 
 import click
+import django
 
 import PyHardLinkBackup
 
@@ -134,6 +135,19 @@ def add():
     add_backups()
 
 cli.add_command(add)
+
+
+
+@click.command()
+def launcher():
+    """Start the GUI launcher"""
+    django.setup()
+
+    from PyHardLinkBackup.phlb_launcher import PyHardLinkBackupLauncher
+    gui = PyHardLinkBackupLauncher()
+    gui.mainloop()
+
+cli.add_command(launcher)
 
 
 if __name__ == '__main__':

@@ -1,12 +1,14 @@
 import datetime
 
-import django
 from django.template import defaultfilters
 from django.utils.translation import ugettext as _
 from django.contrib.humanize.templatetags import humanize
 
 
 def human_time(t):
+    if isinstance(t, datetime.timedelta):
+        t = t.total_seconds()
+
     if t > 3600:
         divisor = 3600.0
         unit = "h"
@@ -41,6 +43,8 @@ def to_percent(part, total):
         # e.g.: Backup only 0-Bytes files ;)
         return 0
 
+def dt2string(dt):
+    return defaultfilters.date(dt, _("DATETIME_FORMAT"))
 
 def dt2naturaltimesince(dt):
     """
@@ -48,9 +52,9 @@ def dt2naturaltimesince(dt):
     e.g.:
         Jan. 27, 2016, 9:04 p.m. (31 minutes ago)
     """
-    date = defaultfilters.date(dt, _("DATETIME_FORMAT"))
-    nt = humanize.naturaltime(dt)
-    return "%s (%s)" % (date, nt)
+    dt_string = dt2string(dt)
+    nt = humanize.naturaltime(dt_string)
+    return "%s (%s)" % (dt_string, nt)
 
 
 def ns2naturaltimesince(ns):

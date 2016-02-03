@@ -1,4 +1,5 @@
 import configparser
+import datetime
 import os
 import logging
 import pathlib
@@ -37,6 +38,23 @@ def build_config_path(backup_path):
         backup_path, BACKUP_RUN_CONFIG_FILENAME
     )
 
+
+class BackupName(models.Model):
+    name = models.CharField(max_length=1024,
+        help_text=_("The name of the backup directory")
+    )
+    def __str__(self):
+        return self.name
+
+
+class SourcePath(models.Model):
+    path = models.CharField(max_length=1024,
+        help_text=_("Source path of the backup.")
+    )
+    def __str__(self):
+        return self.path
+
+
 class BackupRunManager(models.Manager):
     def get_from_config_file(self, backup_path):
         if not backup_path.is_dir():
@@ -44,7 +62,9 @@ class BackupRunManager(models.Manager):
 
         config_path = build_config_path(backup_path)
         if not config_path.is_file():
-            raise FileNotFoundError("Config file %r not found!" % config_path.path)
+            raise FileNotFoundError(
+                "Config file %r not found!\nIs the given path a created Backup?" % config_path.path
+            )
 
         config = configparser.ConfigParser()
         config.read(config_path.path)
@@ -79,19 +99,29 @@ class BackupRunManager(models.Manager):
 
         return backup_run
 
+    def create(self, name, source_path, backup_datetime):
+        backup_name, created = BackupName.objects.get_or_create(name=name)
+        source_path, created = SourcePath.objects.get_or_create(path=source_path)
+        backup_run = super(BackupRunManager, self).create(
+            name = backup_name,
+            source_path = source_path,
+            backup_datetime=backup_datetime,
+        )
+        return backup_run
+
 
 class BackupRun(models.Model):
     """
     One Backup run prefix: start time + backup name
     """
-    name = models.CharField(max_length=1024,
-        help_text=_("The name of the backup directory")
-    )
+    name = models.ForeignKey(BackupName)
     backup_datetime = models.DateTimeField(auto_now=False, auto_now_add=False, unique=True,
         help_text=_("backup_datetime of a started backup. Used in all path as prefix.")
     )
-    completed = models.BooleanField(default=False,
-        help_text=_("Was this backup run finished ?")
+    source_path = models.ForeignKey(SourcePath)
+    end_datetime = models.DateTimeField(auto_now=False, auto_now_add=False,
+        blank=True, null=True,
+        help_text=_("Moment of completion")
     )
 
     objects = BackupRunManager()
@@ -99,7 +129,7 @@ class BackupRun(models.Model):
     def path_part(self):
         return Path2(
             phlb_config.backup_path,
-            self.name,
+            self.name.name,
             self.backup_datetime.strftime(phlb_config.sub_dir_formatter)
         )
 
@@ -124,19 +154,17 @@ class BackupRun(models.Model):
             config.write(configfile)
         log.info("BackupRun config written: %s" % config_path)
 
+    def finished(self):
+        self.end_datetime = datetime.datetime.now()
+
     def save(self, *args, **kwargs):
         super(BackupRun, self).save(*args, **kwargs)
         self.write_config()
 
     def __str__(self):
-        if self.completed:
-            complete = "Completed Backup"
-        else:
-            complete = "*Unfinished* Backup"
-        return "%s %r from: %s stored: %r" % (
-            complete, self.name,
+        return "<BackupRun %s %s>" % (
+            self.name,
             dt2naturaltimesince(self.backup_datetime),
-            self.path_part().path,
         )
 
     class Meta:

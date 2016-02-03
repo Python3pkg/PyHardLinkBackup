@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BackupRun, BackupFilename, BackupEntry, ContentInfo
+from .models import BackupName, SourcePath, BackupRun, BackupFilename, BackupEntry, ContentInfo
 
 
 class BackupEntryAdmin(admin.ModelAdmin):
@@ -19,12 +19,14 @@ admin.site.register(BackupEntry, BackupEntryAdmin)
 
 
 class BackupRunAdmin(admin.ModelAdmin):
-    list_display = ("name", "completed", "backup_datetime", "path_part")
+    list_display = ("name", "backup_datetime", "end_datetime", "path_part")
     date_hierarchy = "backup_datetime"
-    list_filter = ("name", "completed")
+    list_filter = ("name",)
 
 admin.site.register(BackupRun, BackupRunAdmin)
 
 
 admin.site.register(BackupFilename)
 admin.site.register(ContentInfo)
+admin.site.register(BackupName)
+admin.site.register(SourcePath)
