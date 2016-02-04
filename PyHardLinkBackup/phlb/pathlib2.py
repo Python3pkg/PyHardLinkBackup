@@ -33,10 +33,10 @@ class WindowsPath2(SharedPathMethods, pathlib.WindowsPath):
         see:
         https://msdn.microsoft.com/en-us/library/aa365247.aspx#maxpath
         """
-        path = super(WindowsPath2, self).__str__()
-        if path.is_absolute():
-            return "\\\\?\\%s" % path
-        return path
+        path_str = super(WindowsPath2, self).__str__()
+        if self.is_absolute():
+            return "\\\\?\\%s" % path_str
+        return path_str
 
 
 class PosixPath2(SharedPathMethods, pathlib.PosixPath):
@@ -68,7 +68,6 @@ class Path2(pathlib.Path):
         except AttributeError:
             # Exist since in Python 3.5
             return cls(os.path.expanduser("~"))
-
 
 
 def test():
