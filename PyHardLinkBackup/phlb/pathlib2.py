@@ -63,25 +63,8 @@ class Path2(pathlib.Path):
         Return a new path pointing to the user's home directory (as
         returned by os.path.expanduser('~'))
         """
-        try:
-            return pathlib.Path.home()
-        except AttributeError:
-            # Exist since in Python 3.5
-            return cls(os.path.expanduser("~"))
+        # Note: pathlib.Path.home() exist since in Python 3.5
+        return cls(os.path.expanduser("~"))
 
 
-def test():
-    assert PosixPath2("foo/bar").path == "foo/bar"
 
-    assert Path2.home().path == os.path.expanduser("~")
-    assert Path2("~/foo").expanduser().path == os.path.expanduser("~/foo")
-
-    assert callable(Path2(".").makedirs)
-    if os.name == 'nt':
-        assert callable(WindowsPath2(".").link)
-    else:
-        assert callable(PosixPath2(".").utime)
-
-
-if __name__ == '__main__':
-    test()
