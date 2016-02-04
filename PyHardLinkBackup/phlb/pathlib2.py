@@ -26,7 +26,17 @@ class SharedPathMethods:
 
 
 class WindowsPath2(SharedPathMethods, pathlib.WindowsPath):
-    pass
+    def __str__(self):
+        """
+        Add prefix \\?\ to every absolute path, so that it's a "extended-length"
+        path, that should be longer than 259 characters (called: "MAX_PATH")
+        see:
+        https://msdn.microsoft.com/en-us/library/aa365247.aspx#maxpath
+        """
+        path = super(WindowsPath2, self).__str__()
+        if path.is_absolute():
+            return "\\\\?\\%s" % path
+        return path
 
 
 class PosixPath2(SharedPathMethods, pathlib.PosixPath):
