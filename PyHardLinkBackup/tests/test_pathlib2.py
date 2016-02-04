@@ -63,8 +63,8 @@ class TestPosixPath2(unittest.TestCase):
     def test_instances(self):
         self.assertIsInstance(Path2(), PosixPath2)
         self.assertIsInstance(Path2("."), PosixPath2)
-        self.assertIsInstance(Path2(".").resolve(), PosixPath2)
         self.assertIsInstance(Path2.home(), PosixPath2)
+        self.assertIsInstance(Path2.home().resolve(), PosixPath2)
 
     def test_callable(self):
         self.assertTrue(callable(PosixPath2(".").utime))
