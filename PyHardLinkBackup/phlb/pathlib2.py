@@ -34,7 +34,7 @@ class WindowsPath2(SharedPathMethods, pathlib.WindowsPath):
         see:
         https://msdn.microsoft.com/en-us/library/aa365247.aspx#maxpath
         """
-        if self.is_absolute():
+        if self.is_absolute() and not self.path.startswith("\\\\"):
             return "\\\\?\\%s" % self
         return self.path
 

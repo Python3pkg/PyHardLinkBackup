@@ -35,6 +35,17 @@ class TestWindowsPath2(unittest.TestCase):
         self.assertEqual(err.exception.filename, "c:\\foo\\bar")
         self.assertEqual(err.exception.winerror, 3) # Win32 exception code
 
+    def test_already_extended(self):
+        existing_path = Path2("~").expanduser()
+        extended_path = existing_path.extended_path
+        self.assertTrue(extended_path.startswith("\\\\?\\"))
+
+        # A already extended path should not added \\?\ two times:
+        extended_path2 = Path2(extended_path).extended_path
+        self.assertEqual(extended_path2, "\\\\?\\%s" % existing_path)
+        self.assertEqual(extended_path2.count("\\\\?\\"), 1)
+
+
     def test_home(self):
         self.assertEqual(
             Path2("~/foo").expanduser().path,
