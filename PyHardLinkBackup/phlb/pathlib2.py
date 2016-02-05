@@ -10,19 +10,19 @@ class SharedPathMethods:
         return str(self)
 
     def makedirs(self, *args, **kwargs):
-        os.makedirs(self.path, *args, **kwargs)
+        os.makedirs(self.extended_path, *args, **kwargs)
 
     def link(self, other):
-        os.link(self.path, other.path)
+        os.link(self.extended_path, other.extended_path)
 
     def utime(self, *args, **kwargs):
-        os.utime(self.path, *args, **kwargs)
+        os.utime(self.extended_path, *args, **kwargs)
 
     def copyfile(self, other, *args, **kwargs):
-        shutil.copyfile(self.path, other.path, *args, **kwargs)
+        shutil.copyfile(self.extended_path, other.extended_path, *args, **kwargs)
 
     def expanduser(self):
-        return Path2(os.path.expanduser(self.path))
+        return Path2(os.path.expanduser(self.extended_path))
 
 
 class WindowsPath2(SharedPathMethods, pathlib.WindowsPath):
