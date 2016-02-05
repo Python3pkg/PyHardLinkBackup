@@ -106,6 +106,30 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 1 files (0 Bytes 0.0%)", result.output)
 
+    def test_extended_path(self):
+        """
+        Backup a very long path
+        Test the \\?\ notation under Windows as a work-a-round for MAX_PATH.
+        see:
+        https://github.com/jedie/PyHardLinkBackup/issues/18
+        https://bugs.python.org/issue18199
+        https://www.python-forum.de/viewtopic.php?f=1&t=37931#p290999
+        """
+        new_path = pathlib.Path(self.source_path, "A"*255, "B"*255)
+        extended_path = "\\\\?\\%s" % new_path
+        os.makedirs(extended_path)
+        test_filepath = pathlib.Path(extended_path, "X")
+        with test_filepath.open("w") as f:
+            f.write("File content under a very long path.")
+
+        result = self.invoke_cli("backup", self.source_path)
+        print(result.output)
+        self.assertIn("0 Bytes in 0 files to backup.", result.output)
+        self.assertIn("Files to backup: 0 files", result.output)
+        self.assertNotIn("omitted files", result.output)
+        self.assertIn("fast backup: 0 files", result.output)
+
+
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
         first_run_result = self.invoke_cli("backup", self.source_path)

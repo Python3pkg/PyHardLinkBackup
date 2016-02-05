@@ -21,8 +21,6 @@ import collections
 
 from click._compat import strip_ansi
 
-from PyHardLinkBackup.phlb.deduplicate import deduplicate
-
 try:
     # https://github.com/tqdm/tqdm
     from tqdm import tqdm
@@ -37,9 +35,10 @@ log = logging.getLogger("phlb.%s" % __name__)
 import django
 from django.conf import settings
 
+from PyHardLinkBackup.phlb.deduplicate import deduplicate
 from PyHardLinkBackup.phlb.traceback_plus import exc_plus
-from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry, \
-    pprint_path
+from PyHardLinkBackup.phlb.filesystem_walk import scandir_walk, iter_filtered_dir_entry
+from PyHardLinkBackup.phlb.pathlib2 import pprint_path
 from PyHardLinkBackup.phlb.config import phlb_config
 from PyHardLinkBackup.phlb.human import human_time, human_filesize, to_percent, ns2naturaltimesince, dt2naturaltimesince
 from PyHardLinkBackup.backup_app.models import BackupEntry, BackupRun
