@@ -71,7 +71,10 @@ class TestDeepPath(BaseTempTestCase):
         file_path.touch()
         file_path.chmod(0o777)
         if not IS_NT:
-            self.assertEqual(file_path.stat().st_mode, 0o777)
+            self.assertEqual(file_path.stat().st_mode, 33279)
+        file_path.chmod(0o666)
+        if not IS_NT:
+            self.assertEqual(file_path.stat().st_mode, 33206)
 
     def test_rename(self):
         old_file = Path2(self.deep_path, "old_file.txt")
@@ -88,10 +91,6 @@ class TestDeepPath(BaseTempTestCase):
         file_path.touch()
         file_path.unlink()
         self.assertFalse(file_path.is_file())
-
-
-
-
 
 
 @unittest.skipUnless(IS_NT, 'test requires a Windows-compatible system')
