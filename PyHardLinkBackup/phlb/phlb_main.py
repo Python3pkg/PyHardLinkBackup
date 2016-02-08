@@ -474,13 +474,21 @@ class HardLinkBackup(object):
         :param dir_path: filesystem_walk.DirEntryPath() instance
         """
         self.path_helper.set_src_filepath(dir_path)
+        if self.path_helper.abs_src_filepath is None:
+            self.total_errored_items += 1
+            log.info("Can't backup %r", dir_path)
 
         # self.summary(no, dir_path.stat.st_mtime, end=" ")
         if dir_path.is_symlink:
             self.summary("TODO Symlink: %s" % dir_path)
             return
 
-        if dir_path.different_path or dir_path.resolve_error:
+        if dir_path.resolve_error is not None:
+            self.summary("TODO resolve error: %s" % dir_path.resolve_error)
+            pprint_path(dir_path)
+            return
+
+        if dir_path.different_path:
             self.summary("TODO different path:")
             pprint_path(dir_path)
             return

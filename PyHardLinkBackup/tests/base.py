@@ -1,4 +1,5 @@
 import configparser
+import logging
 import shutil
 import os
 import pathlib
@@ -27,6 +28,8 @@ from PyHardLinkBackup.phlb_cli import cli
 from PyHardLinkBackup.tests.utils import UnittestFileSystemHelper
 from PyHardLinkBackup.phlb.phlb_main import FileBackup
 
+log = logging.getLogger("phlb.%s" % __name__)
+
 
 def get_newest_directory(path):
     """
@@ -44,7 +47,7 @@ class BaseTempTestCase(unittest.TestCase):
     """
     def setUp(self):
         super(BaseTempTestCase, self).setUp()
-        self.temp_root_path=tempfile.mkdtemp()
+        self.temp_root_path=tempfile.mkdtemp(prefix="%s_" % __name__)
         os.chdir(self.temp_root_path)
 
     def tearDown(self):
@@ -52,7 +55,7 @@ class BaseTempTestCase(unittest.TestCase):
         # FIXME: Under windows the root temp dir can't be deleted:
         # PermissionError: [WinError 32] The process cannot access the file because it is being used by another process
         def rmtree_error(function, path, excinfo):
-            print("Error remove temp: %r" % path)
+            log.error("\nError remove temp: %r\n%s", path, excinfo[1])
         shutil.rmtree(self.temp_root_path, ignore_errors=True, onerror=rmtree_error)
 
 

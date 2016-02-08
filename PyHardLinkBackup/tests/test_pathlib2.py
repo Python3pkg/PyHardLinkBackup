@@ -1,21 +1,100 @@
+import logging
 import os
+import shutil
 import unittest
-
 import subprocess
 
-import sys
+log = logging.getLogger("phlb.%s" % __name__)
 
 from PyHardLinkBackup.phlb.pathlib2 import Path2, PosixPath2, WindowsPath2, \
     DirEntryPath
 from PyHardLinkBackup.tests.base import BaseTempTestCase
 
+IS_NT = os.name == 'nt'
 
-class TestPath2(unittest.TestCase):
+class TestPath2(BaseTempTestCase):
     def test_callable(self):
         self.assertTrue(callable(Path2(".").makedirs))
 
 
-@unittest.skipIf(os.name != 'nt', 'test requires a Windows-compatible system')
+class TestDeepPath(BaseTempTestCase):
+    def setUp(self):
+        super(TestDeepPath, self).setUp()
+        self.deep_path = Path2(self.temp_root_path, "A"*255, "B"*255)
+        self.deep_path.makedirs()
+
+    def tearDown(self):
+        def rmtree_error(function, path, excinfo):
+            log.error("\nError remove temp: %r\n%s", path, excinfo[1])
+        shutil.rmtree(self.deep_path.extended_path, ignore_errors=False, onerror=rmtree_error)
+        shutil.rmtree(Path2(self.temp_root_path).extended_path, ignore_errors=False, onerror=rmtree_error)
+        super(BaseTempTestCase, self).tearDown()
+
+    def test_exists(self):
+        self.assertTrue(self.deep_path.is_dir())
+        self.assertEqual(self.deep_path.listdir(), [])
+
+    def test_resolve(self):
+        resolved_path = self.deep_path.resolve()
+        self.assertEqual(self.deep_path.path, resolved_path.path)
+
+    def test_utime(self):
+        self.deep_path.utime()
+        mtime = 111111111 # UTC: 1973-07-10 00:11:51
+        atime = 222222222 # UTC: 1977-01-16 01:23:42
+        self.deep_path.utime(times=(atime, mtime))
+        stat = self.deep_path.stat()
+        self.assertEqual(stat.st_atime, atime)
+        self.assertEqual(stat.st_mtime, mtime)
+
+    def test_touch(self):
+        file_path = Path2(self.deep_path, "file.txt")
+        self.assertFalse(file_path.is_file())
+        file_path.touch()
+        self.assertTrue(file_path.is_file())
+
+    def test_open_file(self):
+        file_path = Path2(self.deep_path, "file.txt")
+        with file_path.open("w") as f:
+            f.write("unittests!")
+
+        self.assertTrue(file_path.is_file())
+        with file_path.open("r") as f:
+            self.assertEqual(f.read(), "unittests!")
+
+    def test_listdir(self):
+        Path2(self.deep_path, "a file.txt").touch()
+        self.assertEqual(self.deep_path.listdir(), ["a file.txt"])
+
+    def test_chmod(self):
+        file_path = Path2(self.deep_path, "file.txt")
+        file_path.touch()
+        file_path.chmod(0o777)
+        if not IS_NT:
+            self.assertEqual(file_path.stat().st_mode, 0o777)
+
+    def test_rename(self):
+        old_file = Path2(self.deep_path, "old_file.txt")
+        old_file.touch()
+
+        new_file = Path2(self.deep_path, "new_file.txt")
+        self.assertFalse(new_file.is_file())
+        old_file.rename(new_file)
+        self.assertFalse(old_file.is_file())
+        self.assertTrue(new_file.is_file())
+
+    def test_unlink(self):
+        file_path = Path2(self.deep_path, "file.txt")
+        file_path.touch()
+        file_path.unlink()
+        self.assertFalse(file_path.is_file())
+
+
+
+
+
+
+@unittest.skipUnless(IS_NT, 'test requires a Windows-compatible system')
 class TestWindowsPath2(unittest.TestCase):
     def test_instances(self):
         self.assertIsInstance(Path2(), WindowsPath2)
@@ -38,8 +117,8 @@ class TestWindowsPath2(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError) as err:
             abs_path.resolve()
-        self.assertEqual(err.exception.filename, "c:\\foo\\bar")
-        self.assertEqual(err.exception.winerror, 3) # Win32 exception code
+        self.assertEqual(err.exception.filename, "\\\\?\\c:\\foo\\bar")
+        # self.assertEqual(err.exception.filename, "c:\\foo\\bar")
 
         path = Path2("~").expanduser()
         path = path.resolve()
@@ -94,7 +173,7 @@ class TestWindowsPath2(unittest.TestCase):
         self.assertEqual(path2.relative_to(path1).path, "bar")
 
 
-@unittest.skipIf(os.name == 'nt', 'test requires a POSIX-compatible system')
+@unittest.skipIf(IS_NT, 'test requires a POSIX-compatible system')
 class TestPosixPath2(unittest.TestCase):
 
     def test_instances(self):

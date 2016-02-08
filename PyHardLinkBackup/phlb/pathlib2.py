@@ -6,6 +6,8 @@ import shutil
 
 # Use the built-in version of scandir/walk if possible, otherwise
 # use the scandir module version
+import functools
+
 try:
     from os import scandir # new in Python 3.5
 except ImportError:
@@ -20,32 +22,61 @@ log = logging.getLogger("phlb.%s" % __name__)
 
 IS_WINDOWS = os.name == 'nt'
 
+
 class SharedPathMethods:
-    @property
-    def path(self):
-        # Path2().path is new in 3.4.5 and 3.5.2
-        return str(self)
-
-    def makedirs(self, *args, **kwargs):
-        os.makedirs(self.extended_path, *args, **kwargs)
-
-    def link(self, other):
-        os.link(self.extended_path, other.extended_path)
-
-    def utime(self, *args, **kwargs):
-        os.utime(self.extended_path, *args, **kwargs)
-
     def copyfile(self, other, *args, **kwargs):
         shutil.copyfile(self.extended_path, other.extended_path, *args, **kwargs)
 
     def expanduser(self):
         return Path2(os.path.expanduser(self.extended_path))
 
+    def link(self, other):
+        os.link(self.extended_path, other.extended_path)
+
+    def makedirs(self, *args, **kwargs):
+        os.makedirs(self.extended_path, *args, **kwargs)
+
+    @property
+    def path(self):
+        # Path2().path is new in 3.4.5 and 3.5.2
+        return str(self)
+
+    def utime(self, *args, **kwargs):
+        """ Set the access and modified times of the file specified by path. """
+        os.utime(self.extended_path, *args, **kwargs)
+
     def scandir(self):
         return scandir(self.extended_path)
 
 
 class WindowsPath2(SharedPathMethods, pathlib.WindowsPath):
+    def stat(self):
+        return os.stat(self.extended_path)
+
+    def open(self, *args):
+        return open(self.extended_path, *args)
+
+    def _raw_open(self, flags, mode=0o777):
+        if self._closed:
+            self._raise_closed()
+        return os.open(self.extended_path, flags, mode)
+
+    def chmod(self, *args):
+        return os.chmod(self.extended_path, *args)
+
+    def unlink(self):
+        return os.unlink(self.extended_path)
+
+    def listdir(self):
+        return os.listdir(self.extended_path)
+
+    def rename(self, target):
+        return os.rename(self.extended_path, Path2(target).extended_path)
+
+    def resolve(self):
+        path = super(WindowsPath2, self)._flavour.resolve(self.extended_path)
+        return Path2(path)
+
     @classmethod
     def _from_parts(cls, args, init=True):
         """
@@ -205,5 +236,6 @@ def pprint_path(path):
     print("\n*** %s" % path)
     for attrname in sorted(dir(path)):
         if attrname.startswith("is_"):
-            print("%20s: %s" % (attrname, getattr(path, attrname)()))
+            value = getattr(path, attrname)
+            print("%20s: %s" % (attrname, value))
     print()
