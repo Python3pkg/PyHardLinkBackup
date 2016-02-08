@@ -33,6 +33,9 @@ class SharedPathMethods:
     def link(self, other):
         os.link(self.extended_path, other.extended_path)
 
+    def listdir(self):
+        return os.listdir(self.extended_path)
+
     def makedirs(self, *args, **kwargs):
         os.makedirs(self.extended_path, *args, **kwargs)
 
@@ -66,9 +69,6 @@ class WindowsPath2(SharedPathMethods, pathlib.WindowsPath):
 
     def unlink(self):
         return os.unlink(self.extended_path)
-
-    def listdir(self):
-        return os.listdir(self.extended_path)
 
     def rename(self, target):
         return os.rename(self.extended_path, Path2(target).extended_path)
