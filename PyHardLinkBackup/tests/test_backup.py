@@ -237,14 +237,14 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("unittests raise", log_content)
 
     def test_unexpected_error(self):
-        origin_open = os.stat
+        origin_open = os.utime
         def patched_open(filename, *args, **kwargs):
             if "dir_A_file" in filename: # will match on two files!
                 # raise a extraordinary error that will normally not catch ;)
                 raise TabError("test raise")
             return origin_open(filename, *args, **kwargs)
 
-        with mock.patch("os.stat", patched_open):
+        with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 
@@ -269,13 +269,13 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         self.assertIn("---END---", summary)
 
     def test_keyboard_interrupt(self):
-        origin_open = os.stat
+        origin_open = os.utime
         def patched_open(filename, *args, **kwargs):
             if filename.endswith("dir_A_file_A.txt"):
                 raise KeyboardInterrupt
             return origin_open(filename, *args, **kwargs)
 
-        with mock.patch("os.stat", patched_open):
+        with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
             print(result.output)
 
