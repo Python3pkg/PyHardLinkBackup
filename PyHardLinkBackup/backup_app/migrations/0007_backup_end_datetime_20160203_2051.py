@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
 
 from django.db import migrations, models
-import datetime
+
 
 def migrate_end_datetime(apps, schema_editor):
     SourcePath = apps.get_model("backup_app", "SourcePath")
