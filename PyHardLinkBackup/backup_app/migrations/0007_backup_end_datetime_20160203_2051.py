@@ -19,7 +19,7 @@ def migrate_end_datetime(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('backup_app', '0005_BackupNames_20160203_2007'),
+        ('backup_app', '0006_BackupNames_20160203_2007'),
     ]
 
     operations = [

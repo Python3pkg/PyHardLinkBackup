@@ -17,7 +17,7 @@ def migrate_names(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('backup_app', '0004_BackupRun_ini_file_20160203_1415'),
+        ('backup_app', '0005_auto_20160627_1439'),
     ]
     operations = [
         migrations.CreateModel(
