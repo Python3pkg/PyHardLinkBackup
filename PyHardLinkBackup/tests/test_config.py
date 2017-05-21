@@ -47,7 +47,7 @@ class TestConfig(BaseTestCase):
         phlb_config._config=None
 
         result = self.invoke_cli("config", "--debug")
-        print(result.output)
+        print((result.output))
 
         # check if created
         self.assertIn(USER_INI_PATH, result.output)

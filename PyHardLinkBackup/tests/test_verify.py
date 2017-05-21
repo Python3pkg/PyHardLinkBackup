@@ -10,7 +10,7 @@ from PyHardLinkBackup.tests.base import BaseCreatedOneBackupsTestCase
 class TestTwoBackups(BaseCreatedOneBackupsTestCase):
     def test_verify_all_ok(self):
         result = self.invoke_cli("verify", self.first_run_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("5 File entry exist in database.", result.output)
         self.assertIn("Verify done.", result.output)
         self.assertNotIn("ERROR", result.output)
@@ -20,7 +20,7 @@ class TestTwoBackups(BaseCreatedOneBackupsTestCase):
         file_path.unlink()
 
         result = self.invoke_cli("verify", self.first_run_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("5 File entry exist in database.", result.output)
         self.assertIn("ERROR", result.output)
         self.assertIn("Verify done.", result.output)
@@ -37,7 +37,7 @@ class TestTwoBackups(BaseCreatedOneBackupsTestCase):
         file_path.unlink()
 
         result = self.invoke_cli("verify", self.first_run_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("5 File entry exist in database.", result.output)
         self.assertIn("ERROR", result.output)
         self.assertIn("Verify done.", result.output)
@@ -57,7 +57,7 @@ class TestTwoBackups(BaseCreatedOneBackupsTestCase):
             f.write(hash.hexdigest())
 
         result = self.invoke_cli("verify", self.first_run_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("5 File entry exist in database.", result.output)
         self.assertIn("ERROR", result.output)
         self.assertIn("Verify done.", result.output)
@@ -70,7 +70,7 @@ class TestTwoBackups(BaseCreatedOneBackupsTestCase):
             f.write(b"wrong content")
 
         result = self.invoke_cli("verify", self.first_run_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("5 File entry exist in database.", result.output)
         self.assertIn("ERROR", result.output)
         self.assertIn("Verify done.", result.output)
@@ -83,7 +83,7 @@ class TestTwoBackups(BaseCreatedOneBackupsTestCase):
         content_info.save()
 
         result = self.invoke_cli("verify", self.first_run_path, "--fast")
-        print(result.output)
+        print((result.output))
         self.assertIn("5 File entry exist in database.", result.output)
         self.assertIn("ERROR", result.output)
         self.assertIn("Verify done.", result.output)

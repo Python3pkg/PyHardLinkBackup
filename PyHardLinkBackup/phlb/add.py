@@ -125,7 +125,7 @@ def add_dir_entry(backup_run, dir_entry_path, process_bar, result):
 
 def add_dir_entries(backup_run, filtered_dir_entries, result):
     total_size = sum([entry.stat.st_size for entry in filtered_dir_entries])
-    print("total size:", human_filesize(total_size))
+    print(("total size:", human_filesize(total_size)))
     path_iterator = sorted(
         filtered_dir_entries,
         key=lambda x: x.stat.st_mtime, # sort by last modify time
@@ -156,14 +156,14 @@ def add_backup_entries(backup_run, result):
     add_dir_entries(backup_run, filtered_dir_entries, result)
 
 def add_backup_run(backup_run_path):
-    print("*** add backup run: %s" % backup_run_path.path)
+    print(("*** add backup run: %s" % backup_run_path.path))
 
     backup_name=backup_run_path.parent.stem
     date_part = backup_run_path.stem
     try:
         backup_datetime=datetime.datetime.strptime(date_part, phlb_config.sub_dir_formatter)
     except ValueError as err:
-        print("\nERROR parsing datetime from given path: %s" % err)
+        print(("\nERROR parsing datetime from given path: %s" % err))
         print(" * Is the given path right?")
         print()
         return
@@ -175,33 +175,33 @@ def add_backup_run(backup_run_path):
     )
     result = DeduplicateResult()
     add_backup_entries(backup_run, result)
-    print("*** backup run %s - %s added:" % (backup_name, date_part))
+    print(("*** backup run %s - %s added:" % (backup_name, date_part)))
     total_size = result.get_total_size()
-    print(" * new content saved: %i files (%s %.1f%%)" % (
+    print((" * new content saved: %i files (%s %.1f%%)" % (
         result.total_new_file_count,
         human_filesize(result.total_new_bytes),
         to_percent(result.total_new_bytes, total_size)
-    ))
-    print(" * stint space via hardlinks: %i files (%s %.1f%%)" % (
+    )))
+    print((" * stint space via hardlinks: %i files (%s %.1f%%)" % (
         result.total_stined_file_count,
         human_filesize(result.total_stined_bytes),
         to_percent(result.total_stined_bytes, total_size)
-    ))
+    )))
 
 
 def add_backup_name(backup_name_path):
     backup_runs = scandir_limited(backup_name_path.path, limit=1)
     for dir_entry in backup_runs:
         backup_run_path = Path2(dir_entry.path)
-        print(" * %s" % backup_run_path.stem)
+        print((" * %s" % backup_run_path.stem))
         try:
             backup_run = BackupRun.objects.get_from_config_file(backup_run_path)
         except (FileNotFoundError, BackupRun.DoesNotExist) as err:
-            print("Error: %s" % err)
+            print(("Error: %s" % err))
             # no phlb_config.ini
             add_backup_run(backup_run_path)
         else:
-            print("\tBackup exists:", backup_run)
+            print(("\tBackup exists:", backup_run))
 
 
 def add_all_backups():
@@ -209,8 +209,8 @@ def add_all_backups():
     backup_names = scandir_limited(abs_dst_root.path, limit=1)
     for dir_entry in backup_names:
         backup_name_path = Path2(dir_entry.path)
-        print("_"*79)
-        print("'%s' (path: %s)" % (backup_name_path.stem, backup_name_path.path))
+        print(("_"*79))
+        print(("'%s' (path: %s)" % (backup_name_path.stem, backup_name_path.path)))
         add_backup_name(backup_name_path)
 
 

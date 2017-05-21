@@ -50,7 +50,7 @@ class TestBaseCreatedOneBackupsTestCase(BaseCreatedOneBackupsTestCase):
 
     def test_first_backup_run(self):
         self.assert_click_exception(self.first_backup_result)
-        print(self.first_backup_result.output)
+        print((self.first_backup_result.output))
 
         self.assertIn("PyHardLinkBackup", self.first_backup_result.output)
         self.assertIn("5 dir entries", self.first_backup_result.output)
@@ -93,7 +93,7 @@ class TestBaseCreatedTwoBackupsTestCase(BaseCreatedTwoBackupsTestCase):
 
     def test_second_backup_run(self):
         self.assert_click_exception(self.second_backup_result)
-        print(self.second_backup_result.output)
+        print((self.second_backup_result.output))
 
         self.assertIn("106 Bytes in 5 files to backup.", self.second_backup_result.output)
         self.assertNotIn("WARNING: Omitted", self.second_backup_result.output)

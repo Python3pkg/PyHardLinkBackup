@@ -26,7 +26,7 @@ class TestBackup(BaseSourceDirTestCase):
     """
     def test_no_files(self):
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("0 Bytes in 0 files to backup.", result.output)
         self.assertIn("Files to backup: 0 files", result.output)
         self.assertNotIn("omitted files", result.output)
@@ -47,7 +47,7 @@ class TestBackup(BaseSourceDirTestCase):
         self.assertEqual(os.stat(str(test_file2)).st_size, 8)
 
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
 
         self.assertIn("16 Bytes in 2 files to backup.", result.output)
         self.assertNotIn("omitted files", result.output)
@@ -66,7 +66,7 @@ class TestBackup(BaseSourceDirTestCase):
         self.assert_file_mtime_ns(test_file, mtime_ns)
 
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
 
         # check mtime
         backup_path1 = self.get_newest_backup_path()
@@ -91,7 +91,7 @@ class TestBackup(BaseSourceDirTestCase):
 
         # Test second run:
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
 
         # check mtime
         backup_path2 = self.get_newest_backup_path()
@@ -124,7 +124,7 @@ class TestBackup(BaseSourceDirTestCase):
             f.write("File content under a very long path.")
 
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
         self.assertIn("36 Bytes in 1 files to backup.", result.output)
         self.assertIn("new content saved: 1 files (36 Bytes 100.0%)", result.output)
         self.assertNotIn("omitted files", result.output)
@@ -134,7 +134,7 @@ class TestBackup(BaseSourceDirTestCase):
 class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
     def test_print_update(self):
         first_run_result = self.invoke_cli("backup", self.source_path)
-        print("FIRST RUN OUTPUT:\n", first_run_result.output)
+        print(("FIRST RUN OUTPUT:\n", first_run_result.output))
 
         # We should not have in between update info with default settings and duration
         self.assertNotIn("Update info:", first_run_result.output)
@@ -146,7 +146,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         phlb_config.print_update_interval=0.1 # Very often status infos
 
         second_run_result = self.invoke_cli("backup", self.source_path)
-        print("SECOND RUN OUTPUT:\n", second_run_result.output)
+        print(("SECOND RUN OUTPUT:\n", second_run_result.output))
 
         # Now we should have in between update info
         self.assertIn("Slow down speed for tests activated!", second_run_result.output)
@@ -169,7 +169,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
         runner = CliRunner()
         result = runner.invoke(cli, args=["backup", source_path])
 
-        print(result.output)
+        print((result.output))
         self.assertIn("Error get name for this backup!", result.output)
         self.assertIn("Please use '--name' for force a backup name!", result.output)
 
@@ -177,7 +177,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
     def test_force_name(self):
         result = self.invoke_cli("backup", self.source_path, "--name", "ForcedName")
-        print(result.output)
+        print((result.output))
 
         fs_items=os.listdir(self.backup_path)
         self.assertEqual(fs_items, ['ForcedName'])
@@ -194,7 +194,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
             os.path.join(self.source_path, "sub dir B", "sub_file.txt"),
         )
         print("Deny path:")
-        print("\n".join(deny_paths))
+        print(("\n".join(deny_paths)))
 
         # pathlib.Path().open() used io.open and not builtins.open !
         with mock.patch('io.open', PatchOpen(open, deny_paths)) as p:
@@ -211,7 +211,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
             self.assertEqual(p.raise_count, 1)
 
             result = self.invoke_cli("backup", self.source_path)
-            print(result.output)
+            print((result.output))
             self.assertEqual(p.raise_count, 3)
 
         self.assertIn("unittests raise", result.output) # Does the test patch worked?
@@ -247,7 +247,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
-            print(result.output)
+            print((result.output))
 
         summary = self.get_last_summary_content()
 
@@ -278,7 +278,7 @@ class WithSourceFilesTestCase(BaseWithSourceFilesTestCase):
 
         with mock.patch("os.utime", patched_open):
             result = self.invoke_cli("backup", self.source_path)
-            print(result.output)
+            print((result.output))
 
         summary = self.get_last_summary_content()
 
@@ -340,11 +340,11 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
             os.path.join(self.first_run_path, "sub dir B", "sub_file.txt"),
         )
         for path in paths:
-            print("Delete: %r" % path)
+            print(("Delete: %r" % path))
             os.remove(path)
 
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
 
         log_content = self.get_log_content(self.first_run_log)
         parts = (
@@ -381,7 +381,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         with mock.patch('os.link', patched_open):
             result = self.invoke_cli("backup", self.source_path)
-            print(result.output)
+            print((result.output))
 
         self.assertIn("Can't link", result.output)
         self.assertIn("root_file_B.txt': unittests raise", result.output)
@@ -417,7 +417,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         backup_run.save()
 
         result = self.invoke_cli("backup", self.source_path)
-        print(result.output)
+        print((result.output))
         backup_path = self.get_newest_backup_path()
         self.assert_backuped_files(backup_path, backup_run_pk=2)
 
@@ -440,7 +440,7 @@ class TestTwoBackups(BaseCreatedTwoBackupsTestCase):
         # run backup
         result = self.invoke_cli("backup", self.source_path)
 
-        print(result.output)
+        print((result.output))
 
         self.assertIn("110 Bytes in 5 files to backup.", result.output)
         self.assertNotIn("omitted files", result.output)

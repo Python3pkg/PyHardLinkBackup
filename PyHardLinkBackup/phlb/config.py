@@ -126,7 +126,7 @@ def edit_ini(ini_filepath=None):
     try:
         click.edit(filename=ini_filepath)
     except click.exceptions.ClickException as err:
-        print("Click err: %s" % err)
+        print(("Click err: %s" % err))
         webbrowser.open(ini_filepath)
 
 
@@ -166,7 +166,7 @@ class PyHardLinkBackupConfig(object):
         """
         d = get_dict_from_ini(filepath)
         result = {}
-        for key, func in self.ini_converter_dict.items():
+        for key, func in list(self.ini_converter_dict.items()):
             if not all_values and key not in d:
                 continue
 
@@ -174,11 +174,11 @@ class PyHardLinkBackupConfig(object):
                 value = d[key]
             except KeyError as err:
                 traceback.print_exc()
-                print("_"*79)
-                print("ERROR: %r is missing in your config!" % err)
-                print("Debug '%s':" % filepath)
+                print(("_"*79))
+                print(("ERROR: %r is missing in your config!" % err))
+                print(("Debug '%s':" % filepath))
                 try:
-                    print(pprint.pformat(d))
+                    print((pprint.pformat(d)))
                 except KeyError:
                     pass
                 print("\n")
@@ -225,12 +225,12 @@ class PyHardLinkBackupConfig(object):
 
             print("\n*************************************************************")
             print("Default config file was created into your home:")
-            print("\t%s" % self.ini_filepath)
+            print(("\t%s" % self.ini_filepath))
             print("Change it for your needs ;)")
             print("*************************************************************\n")
         else:
             print("\nread user configuration from:")
-            print("\t%s\n" % self.ini_filepath)
+            print(("\t%s\n" % self.ini_filepath))
             config.update(
                 self._read_and_convert(self.ini_filepath, all_values=False)
             )
@@ -240,7 +240,7 @@ class PyHardLinkBackupConfig(object):
 
     def print_config(self):
         self._load()
-        print("Debug config '%s':" % self.ini_filepath)
+        print(("Debug config '%s':" % self.ini_filepath))
         pprint.pprint(self._config)
 
 phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
@@ -253,12 +253,12 @@ if __name__ == '__main__':
 
     phlb_config=PyHardLinkBackupConfig(INI_CONVERTER_DICT)
 
-    print("INI filepath: '%s'" % phlb_config.ini_filepath)
+    print(("INI filepath: '%s'" % phlb_config.ini_filepath))
     pprint.pprint(phlb_config)
 
     print()
-    for k in phlb_config._config.keys():
-        print(k, getattr(phlb_config, k))
+    for k in list(phlb_config._config.keys()):
+        print((k, getattr(phlb_config, k)))
 
     try:
         phlb_config.doesntexist

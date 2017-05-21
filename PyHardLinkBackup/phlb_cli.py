@@ -56,31 +56,31 @@ def helper(path):
         # link shell scripts
         src_path = os.path.join(PHLB_BASE_DIR, "helper_sh")
     else:
-        print("TODO: %s" % sys.platform)
+        print(("TODO: %s" % sys.platform))
         return
 
     if not os.path.isdir(src_path):
         raise RuntimeError("Helper script path not found here: '%s'" % src_path)
 
     for entry in scandir(src_path):
-        print("_"*79)
-        print("Link file: '%s'" % entry.name)
+        print(("_"*79))
+        print(("Link file: '%s'" % entry.name))
         src = entry.path
         dst = os.path.join(path, entry.name)
         if os.path.exists(dst):
-            print("Remove old file '%s'" % dst)
+            print(("Remove old file '%s'" % dst))
             try:
                 os.remove(dst)
             except OSError as err:
-                print("\nERROR:\n%s\n" % err)
+                print(("\nERROR:\n%s\n" % err))
                 continue
 
-        print("source.....: '%s'" % src)
-        print("destination: '%s'" % dst)
+        print(("source.....: '%s'" % src))
+        print(("destination: '%s'" % dst))
         try:
             os.link(src, dst)
         except OSError as err:
-            print("\nERROR:\n%s\n" % err)
+            print(("\nERROR:\n%s\n" % err))
             continue
 
 cli.add_command(helper)

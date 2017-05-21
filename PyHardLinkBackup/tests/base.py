@@ -37,7 +37,7 @@ def get_newest_directory(path):
     """
     sub_dirs = [entry for entry in scandir(path) if entry.is_dir()]
     sub_dirs.sort(key=lambda x: x.stat().st_mtime_ns)
-    print("Backup sub dirs:\n\t%s" % "\n\t".join([p.path for p in sub_dirs]))
+    print(("Backup sub dirs:\n\t%s" % "\n\t".join([p.path for p in sub_dirs])))
     sub_dir = sub_dirs[-1]
     return sub_dir.path
 
@@ -65,13 +65,13 @@ class BaseTestCase(BaseTempTestCase, django.test.TestCase):
         config["unittests"]=ini_extras
         with open(filepath, 'w') as ini:
             config.write(ini)
-        print("%r for unittests created." % filepath)
+        print(("%r for unittests created." % filepath))
 
         if debug:
             with open(filepath, 'r') as ini:
-                print("+"*79)
-                print(ini.read())
-                print("+"*79)
+                print(("+"*79))
+                print((ini.read()))
+                print(("+"*79))
 
         phlb_config._load(force=True)
 
@@ -104,10 +104,10 @@ class BaseTestCase(BaseTempTestCase, django.test.TestCase):
 
     def assert_click_exception(self, result):
         if result.exception:
-            print("_"*79)
+            print(("_"*79))
             print("Exception while running:")
-            print(result.output)
-            print("*"*79)
+            print((result.output))
+            print(("*"*79))
             raise result.exception
 
     def invoke_cli(self, *args):

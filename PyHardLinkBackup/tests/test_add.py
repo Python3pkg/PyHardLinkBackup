@@ -32,7 +32,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         runner = CliRunner()
         result = runner.invoke(cli, args=["add"])
-        print(result.output)
+        print((result.output))
 
         assert_msg = str(result.exception)
         self.assertIn("Backup path mismatch", assert_msg)
@@ -47,7 +47,7 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
         self.assert_database_backup_entries(count=5)
 
         result = self.invoke_cli("add")
-        print(result.output)
+        print((result.output))
 
         self.assertIn("new content saved: 0 files (0 Bytes 0.0%)", result.output)
         self.assertIn("stint space via hardlinks: 5 files (106 Bytes 100.0%)", result.output)
@@ -61,8 +61,8 @@ class TestOneBackups(BaseCreatedOneBackupsTestCase):
 
         # Just run a second time:
         result = self.invoke_cli("add")
-        print("*"*79)
-        print(result.output)
+        print(("*"*79))
+        print((result.output))
 
         self.assertIn("Backup exists", result.output)
 
